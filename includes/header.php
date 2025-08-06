@@ -3,111 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo isset($pageTitle) ? $pageTitle . ' - ' : ''; ?><?php echo APP_NAME; ?></title>
+    <title><?php echo isset($pageTitle) ? $pageTitle . ' - ' . APP_NAME : APP_NAME; ?></title>
     
-    <!-- Bootstrap CSS - Offline -->
-    <link href="styles/css/bootstrap.min.css" rel="stylesheet">
-    <link href="styles/css/bootstrap-icons.css" rel="stylesheet">
-    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Custom CSS -->
-    <style>
-        .sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            padding: 48px 0 0;
-            box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
-        }
-        
-        .sidebar-sticky {
-            position: relative;
-            top: 0;
-            height: calc(100vh - 48px);
-            padding-top: .5rem;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-        
-        .navbar-brand {
-            padding-top: .75rem;
-            padding-bottom: .75rem;
-        }
-        
-        .navbar .navbar-toggler {
-            top: .25rem;
-            right: 1rem;
-        }
-        
-        .border-left-primary {
-            border-left: 0.25rem solid #4e73df !important;
-        }
-        
-        .border-left-success {
-            border-left: 0.25rem solid #1cc88a !important;
-        }
-        
-        .border-left-info {
-            border-left: 0.25rem solid #36b9cc !important;
-        }
-        
-        .border-left-warning {
-            border-left: 0.25rem solid #f6c23e !important;
-        }
-        
-        .text-gray-300 {
-            color: #dddfeb !important;
-        }
-        
-        .text-gray-800 {
-            color: #5a5c69 !important;
-        }
-        
-        .shadow {
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
-        }
-        
-        .card {
-            border: 1px solid #e3e6f0;
-        }
-        
-        .card-header {
-            background-color: #f8f9fc;
-            border-bottom: 1px solid #e3e6f0;
-        }
-        
-        @media (max-width: 767.98px) {
-            .sidebar {
-                top: 5rem;
-            }
-        }
-    </style>
+    <link href="<?php echo BASE_URL; ?>/assets/css/style.css" rel="stylesheet">
+    
+    <!-- Meta tags -->
+    <meta name="description" content="School Results Management System for Government Secondary Schools in Tanzania">
+    <meta name="author" content="School Administration">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="<?php echo BASE_URL; ?>/assets/images/favicon.ico">
 </head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0 shadow">
-        <a class="navbar-brand col-md-3 col-lg-2 me-0 px-3" href="dashboard.php">
-            <i class="bi bi-mortarboard-fill me-2"></i>
-            School Results
-        </a>
-        <button class="navbar-toggler position-absolute d-md-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="navbar-nav">
-            <div class="nav-item text-nowrap">
-                <div class="dropdown">
-                    <a class="nav-link px-3 dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-person-circle me-1"></i>
-                        <?php echo htmlspecialchars(getCurrentUser()['name']); ?>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="profile.php"><i class="bi bi-person me-2"></i>Profile</a></li>
-                        <li><a class="dropdown-item" href="settings.php"><i class="bi bi-gear me-2"></i>Settings</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="logout.php"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
-                    </ul>
-                </div>
+<body class="bg-light">
+    
+    <!-- Navigation Bar -->
+    <?php if (isLoggedIn()): ?>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="<?php echo BASE_URL; ?>">
+                <i class="bi bi-mortarboard-fill me-2"></i>
+                <?php echo APP_NAME; ?>
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <?php
+                    $currentUser = getCurrentUser();
+                    $userRole = $_SESSION['user_role'];
+                    ?>
+                    
+                    <?php if ($userRole === 'super_admin'): ?>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="usersDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-people me-1"></i> Users
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/admin/users.php">Manage Users</a></li>
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/admin/teachers.php">Assign Teachers</a></li>
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="studentsDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-badge me-1"></i> Students
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/admin/students.php">Manage Students</a></li>
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/admin/import-students.php">Import Students</a></li>
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="academicDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-calendar-event me-1"></i> Academic
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/admin/subjects.php">Subjects</a></li>
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/admin/academic-years.php">Academic Years</a></li>
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/admin/examinations.php">Examinations</a></li>
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/admin/reports.php">All Reports</a></li>
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/admin/analytics.php">Analytics</a></li>
+                        </ul>
+                    </li>
+                    <?php endif; ?>
+                    
+                    <?php if ($userRole === 'principal'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>/modules/principal/reports.php">
+                            <i class="bi bi-file-earmark-bar-graph me-1"></i> Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>/modules/principal/analytics.php">
+                            <i class="bi bi-graph-up me-1"></i> Analytics
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>/modules/principal/students.php">
+                            <i class="bi bi-person-badge me-1"></i> Students
+                        </a>
+                    </li>
+                    <?php endif; ?>
+                    
+                    <?php if ($userRole === 'teacher'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>/modules/teacher/subjects.php">
+                            <i class="bi bi-book me-1"></i> My Subjects
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>/modules/teacher/results.php">
+                            <i class="bi bi-clipboard-data me-1"></i> Enter Results
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>/modules/teacher/reports.php">
+                            <i class="bi bi-file-earmark-text me-1"></i> Reports
+                        </a>
+                    </li>
+                    <?php endif; ?>
+                    
+                    <?php if ($userRole === 'class_teacher'): ?>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>/modules/class-teacher/class.php">
+                            <i class="bi bi-people me-1"></i> My Class
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>/modules/class-teacher/results.php">
+                            <i class="bi bi-clipboard-data me-1"></i> Class Results
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="<?php echo BASE_URL; ?>/modules/class-teacher/reports.php">
+                            <i class="bi bi-file-earmark-text me-1"></i> Class Reports
+                        </a>
+                    </li>
+                    <?php endif; ?>
+                </ul>
+                
+                <!-- User Menu -->
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle me-2"></i>
+                            <span><?php echo htmlspecialchars($_SESSION['user_name']); ?></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><h6 class="dropdown-header"><?php echo ucfirst(str_replace('_', ' ', $userRole)); ?></h6></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/profile.php">
+                                <i class="bi bi-person me-2"></i> Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/change-password.php">
+                                <i class="bi bi-key me-2"></i> Change Password
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="<?php echo BASE_URL; ?>/logout.php">
+                                <i class="bi bi-box-arrow-right me-2"></i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
+    <?php endif; ?>
+    
+    <!-- Main Content Container -->
+    <div class="container-fluid">
+        <?php if (isset($_SESSION['success_message'])): ?>
+        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            <?php echo htmlspecialchars($_SESSION['success_message']); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['success_message']); endif; ?>
+        
+        <?php if (isset($_SESSION['error_message'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <?php echo htmlspecialchars($_SESSION['error_message']); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['error_message']); endif; ?>
+        
+        <?php if (isset($_SESSION['warning_message'])): ?>
+        <div class="alert alert-warning alert-dismissible fade show mt-3" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <?php echo htmlspecialchars($_SESSION['warning_message']); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <?php unset($_SESSION['warning_message']); endif; ?>

@@ -1,251 +1,296 @@
-# School Results Management System - PHP Version
+# School Results Management System
 
-A comprehensive school results management system built with vanilla PHP, Bootstrap, and SQLite database. This system is designed for Tanzanian secondary schools supporting both Ordinary Level (Forms 1-4) and Advanced Level (Forms 5-6) education.
+A comprehensive web-based application for managing student results in Tanzanian government secondary schools, built with PHP, MySQL, Bootstrap 5, and JavaScript.
 
 ## Features
 
-### User Management
-- **Super Admin**: Full system access, user management, system configuration
-- **Principal**: View all data, generate reports, analytics access
-- **Teacher**: Enter/edit results for assigned subjects only
-- **Class Teacher**: All teacher permissions plus class-specific management
+### Core Functionality
+- **User Management**: Multi-role authentication (Super Admin, Principal, Teacher, Class Teacher)
+- **Student Management**: Registration, editing, class assignment, and academic tracking
+- **Results Management**: CA and exam marks entry with automatic grade calculation
+- **Reporting System**: Comprehensive reports with PDF generation and Excel export
+- **Academic Structure**: Support for Forms 1-6, terms, subjects, and academic years
+- **Division Calculation**: Automatic calculation based on Tanzanian education system
 
-### Academic Structure
-- Support for Forms 1-6 (O-Level and A-Level)
-- 20 O-Level subjects and 9 A-Level subjects as per Tanzanian curriculum
-- 2 terms per academic year system
-- Automatic grade calculation and division assignment
+### Technical Features
+- **Responsive Design**: Bootstrap 5 with mobile-first approach
+- **AJAX Integration**: Seamless user experience with real-time updates
+- **Data Security**: SQL injection prevention, CSRF protection, password hashing
+- **File Management**: Excel/CSV import/export capabilities
+- **Activity Logging**: Comprehensive audit trail
+- **Data Validation**: Client and server-side validation
 
-### Results Management
-- Continuous Assessment (CA) and Final Exam marks entry
-- Automatic average calculation and grade assignment
-- Real-time division calculation
-- O-Level: Best 7 subjects for division calculation
-- A-Level: All 4 subjects for division calculation
+## Technology Stack
 
-### Grading System
-#### O-Level Grading:
-- Grade A: 75-100% → 1 point
-- Grade B: 65-74% → 2 points  
-- Grade C: 45-64% → 3 points
-- Grade D: 30-44% → 4 points
-- Grade F: 0-29% → 5 points
-
-#### A-Level Grading:
-- Grade A: 80-100% → 1 point
-- Grade B: 70-79% → 2 points
-- Grade C: 60-69% → 3 points
-- Grade D: 50-59% → 4 points
-- Grade E: 40-49% → 5 points
-- Grade F: Below 35% → 6 points
-
-### Division Calculation
-#### O-Level Divisions:
-- Division I: 7-17 points
-- Division II: 18-21 points
-- Division III: 22-25 points
-- Division IV: 26-33 points
-- Division 0: 34+ points
-
-#### A-Level Divisions:
-- Division I: 3-9 points
-- Division II: 10-12 points
-- Division III: 13-17 points
-- Division IV: 18-19 points
-- Division 0: 20+ points
+- **Backend**: PHP 7.4+ (Object-oriented approach)
+- **Database**: MySQL 5.7+ / MariaDB 10.3+
+- **Frontend**: Bootstrap 5.3.2, jQuery 3.7.1, Chart.js
+- **Additional Libraries**: 
+  - DataTables (table management)
+  - PhpSpreadsheet (Excel handling)
+  - TCPDF (PDF generation)
 
 ## Installation
 
-### Requirements
+### Prerequisites
 - PHP 7.4 or higher
-- SQLite3 extension enabled
+- MySQL 5.7 or higher (or MariaDB 10.3+)
 - Web server (Apache/Nginx)
+- Composer (for dependency management)
 
-### Setup Instructions
+### Step 1: Clone/Download the Project
+```bash
+git clone <repository-url>
+cd school-results-management
+```
 
-1. **Download and Extract**
-   \`\`\`bash
-   # Extract the php-version folder to your web server directory
-   # For XAMPP: htdocs/php-version
-   # For WAMP: www/php-version
-   \`\`\`
+### Step 2: Database Setup
+1. Create a new MySQL database:
+```sql
+CREATE DATABASE school_results_db;
+```
 
-2. **Set Permissions**
-   \`\`\`bash
-   # Make sure the database directory is writable
-   chmod 755 database/
-   chmod 666 database/ (if database file exists)
-   \`\`\`
+2. Import the database schema:
+```bash
+mysql -u root -p school_results_db < database.sql
+```
 
-3. **Run Setup**
-   - Navigate to `http://localhost/php-version/setup.php`
-   - Click "Setup Database" to create tables and sample data
-   - Wait for confirmation message
+3. Update database configuration in `includes/config.php`:
+```php
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'school_results_db');
+define('DB_USER', 'your_username');
+define('DB_PASS', 'your_password');
+```
 
-4. **Login**
-   - Go to `http://localhost/php-version/login.php`
-   - Use demo credentials provided below
+### Step 3: File Permissions
+Ensure the uploads directory is writable:
+```bash
+chmod 755 uploads/
+```
 
-## Demo Credentials
+### Step 4: Web Server Configuration
 
-| Role | Email | Password |
-|------|-------|----------|
-| Super Admin | admin@school.com | password |
-| Principal | principal@school.com | password |
-| Teacher | john@school.com | password |
-| Class Teacher | mary@school.com | password |
+#### Apache (.htaccess)
+```apache
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
 
-## File Structure
+# Security headers
+Header always set X-Content-Type-Options nosniff
+Header always set X-Frame-Options DENY
+Header always set X-XSS-Protection "1; mode=block"
+```
 
-\`\`\`
-php-version/
-├── config/
-│   ├── config.php          # Application configuration
-│   └── database.php        # Database connection class
-├── classes/
-│   ├── Auth.php           # Authentication class
-│   ├── User.php           # User management class
-│   ├── Student.php        # Student management class
-│   ├── Subject.php        # Subject management class
-│   ├── Result.php         # Results management class
-│   └── DivisionCalculator.php # Division calculation logic
-├── database/
-│   ├── schema.sql         # Database schema
-│   ├── seed_data.sql      # Sample data
-│   └── school_results.db  # SQLite database (created after setup)
+#### Nginx
+```nginx
+location / {
+    try_files $uri $uri/ /index.php?$query_string;
+}
+
+location ~ \.php$ {
+    fastcgi_pass 127.0.0.1:9000;
+    fastcgi_index index.php;
+    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    include fastcgi_params;
+}
+```
+
+### Step 5: Install Dependencies (Optional)
+If using Composer for additional libraries:
+```bash
+composer install
+```
+
+## Configuration
+
+### Environment Setup
+1. Copy and modify configuration:
+```bash
+cp includes/config.php.example includes/config.php
+```
+
+2. Update settings in `includes/config.php`:
+- Database credentials
+- Base URL
+- Upload paths
+- Timezone
+
+### Default Login Credentials
+- **Email**: admin@school.com
+- **Password**: password
+
+**Important**: Change the default password immediately after first login.
+
+## Project Structure
+
+```
+/
+├── assets/
+│   ├── css/
+│   │   └── style.css          # Custom styles
+│   ├── js/
+│   │   └── app.js             # Main JavaScript functions
+│   └── images/                # Image assets
 ├── includes/
-│   ├── functions.php      # Helper functions
-│   ├── header.php         # Common header
-│   ├── sidebar.php        # Navigation sidebar
-│   └── footer.php         # Common footer
-├── results/
-│   ├── index.php          # Results overview
-│   ├── enter.php          # Results entry form
-│   └── view.php           # View results
-├── students/
-│   └── index.php          # Student management
-├── teachers/
-│   └── index.php          # Teacher management
-├── subjects/
-│   └── index.php          # Subject management
-├── reports/
-│   └── index.php          # Reports section
-├── login.php              # Login page
-├── logout.php             # Logout handler
-├── dashboard.php          # Main dashboard
-├── setup.php              # Database setup
-└── README.md              # This file
-\`\`\`
+│   ├── config.php             # Database and app configuration
+│   ├── auth.php               # Authentication functions
+│   ├── functions.php          # Common utility functions
+│   ├── header.php             # Common header template
+│   └── footer.php             # Common footer template
+├── modules/
+│   ├── admin/                 # Super admin modules
+│   ├── principal/             # Principal modules
+│   ├── teacher/               # Teacher modules
+│   └── class-teacher/         # Class teacher modules
+├── uploads/                   # File upload directory
+├── database.sql               # Database schema
+├── index.php                  # Main entry point
+├── login.php                  # Login page
+├── logout.php                 # Logout handler
+└── README.md                  # This file
+```
 
-## Key Features
+## User Roles & Permissions
 
-### Dashboard
-- Role-specific dashboards with relevant information
-- Statistics and progress tracking
-- Quick action buttons
-- Recent activity logs
+### Super Admin
+- Complete system access
+- User management (create, edit, delete users)
+- Student management (all operations)
+- Subject and academic year management
+- System settings and configuration
+- Full reporting access
+- Data import/export
 
-### Results Entry
-- Intuitive form interface for entering CA and Exam marks
-- Real-time grade calculation
-- Progress tracking per subject
-- Bulk entry capabilities
+### Principal
+- View all students and results
+- Access to comprehensive reports
+- Analytics and performance dashboards
+- Read-only access to system data
 
-### Division Calculation
-- Automatic calculation based on Tanzanian education system
-- Best 7 subjects for O-Level
-- All subjects for A-Level
-- Historical tracking
+### Teacher
+- Manage assigned subjects and classes
+- Enter and edit results for assigned subjects
+- View reports for assigned classes
+- Student progress tracking
 
-### Security Features
-- Password hashing with PHP's password_hash()
-- CSRF token protection
-- Role-based access control
-- Session management
-- SQL injection prevention with prepared statements
+### Class Teacher
+- Manage assigned class students
+- View comprehensive class results
+- Generate class reports
+- Student academic monitoring
 
-### Responsive Design
-- Bootstrap 5 framework
-- Mobile-friendly interface
-- Print-friendly reports
-- Modern UI with icons
+## Usage Guide
 
-## Usage
+### Initial Setup
+1. **Login** with admin credentials
+2. **Create Academic Year** (Admin → Academic → Academic Years)
+3. **Add Subjects** (Admin → Academic → Subjects)
+4. **Create Users** (Admin → Users → Manage Users)
+5. **Register Students** (Admin → Students → Manage Students)
+6. **Assign Teachers** to subjects and classes
 
-### For Super Admins
-1. Manage users (teachers, students)
-2. Set up subjects and classes
-3. Configure academic years and terms
-4. View all system data and reports
+### Daily Operations
+1. **Results Entry**: Teachers enter CA and exam marks
+2. **Grade Calculation**: System automatically calculates grades and divisions
+3. **Report Generation**: Generate progress reports and transcripts
+4. **Data Export**: Export results to Excel for external use
 
-### For Principals
-1. View school performance analytics
-2. Generate comprehensive reports
-3. Monitor division statistics
-4. Track top performers
+### End of Term
+1. **Complete Results Entry**: Ensure all marks are entered
+2. **Generate Reports**: Create comprehensive term reports
+3. **Calculate Rankings**: System calculates student positions
+4. **Archive Data**: Export and backup term data
 
-### For Teachers
-1. Enter results for assigned subjects
-2. View student performance in their subjects
-3. Generate subject-specific reports
-4. Track results entry progress
+## Security Features
 
-### For Class Teachers
-1. All teacher functions
-2. Manage assigned class students
-3. View class performance overview
-4. Generate class reports
+- **Password Hashing**: Uses PHP's `password_hash()` function
+- **SQL Injection Prevention**: Prepared statements for all queries
+- **CSRF Protection**: Token-based form protection
+- **Session Security**: Secure session management
+- **Input Validation**: Server and client-side validation
+- **Activity Logging**: Complete audit trail
+- **Role-based Access**: Granular permission system
 
-## Customization
+## Backup and Maintenance
 
-### Adding New Subjects
-1. Login as Super Admin
-2. Go to Subjects section
-3. Add new subject with appropriate level (ordinary/advanced)
+### Database Backup
+```bash
+mysqldump -u username -p school_results_db > backup_$(date +%Y%m%d).sql
+```
 
-### Modifying Grading System
-Edit the `calculateGrade()` function in `includes/functions.php`
+### File Backup
+```bash
+tar -czf school_backup_$(date +%Y%m%d).tar.gz /path/to/school-results/
+```
 
-### Changing Academic Structure
-Modify the database schema and update relevant classes
+### Regular Maintenance
+- Monitor disk space (uploads folder)
+- Review activity logs
+- Update user passwords regularly
+- Clean old session files
+- Backup data before major updates
 
 ## Troubleshooting
 
-### Database Issues
-- Ensure SQLite extension is enabled in PHP
-- Check file permissions on database directory
-- Re-run setup.php if database is corrupted
+### Common Issues
 
-### Login Problems
-- Verify demo credentials
-- Check if setup was completed successfully
-- Clear browser cache and cookies
+1. **Database Connection Error**
+   - Check database credentials in `config.php`
+   - Ensure MySQL server is running
+   - Verify database exists
 
-### Permission Errors
-- Ensure proper file permissions
-- Check user roles in database
-- Verify session configuration
+2. **File Upload Issues**
+   - Check upload directory permissions
+   - Verify PHP `upload_max_filesize` setting
+   - Ensure `post_max_size` is adequate
 
-## Support
+3. **Login Problems**
+   - Clear browser cache and cookies
+   - Check user status in database
+   - Verify password hasn't expired
 
-For technical support or questions:
-1. Check the troubleshooting section
-2. Review the code comments for implementation details
-3. Verify database integrity using SQLite browser tools
+4. **Performance Issues**
+   - Enable PHP OPcache
+   - Optimize database queries
+   - Use CDN for static assets
 
-## License
-
-This project is open source and available under the MIT License.
+### Log Files
+- Check PHP error logs
+- Review activity logs in database
+- Monitor web server access logs
 
 ## Contributing
 
-Contributions are welcome! Please:
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test thoroughly
+4. Add tests if applicable
 5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For support and questions:
+- Create an issue in the repository
+- Check the documentation
+- Review the troubleshooting section
+
+## Changelog
+
+### Version 1.0.0
+- Initial release
+- Complete user management system
+- Student registration and management
+- Results entry and calculation
+- Basic reporting functionality
+- PDF and Excel export capabilities
 
 ---
 
-**Note**: This system is designed specifically for Tanzanian secondary schools but can be adapted for other educational systems by modifying the grading scales and academic structure.
+**Note**: This system is specifically designed for Tanzanian government secondary schools and follows the local education system structure and grading standards.
