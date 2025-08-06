@@ -39,8 +39,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 foreach ($settingsToUpdate as $key => $value) {
                     $existing = $db->fetchOne("SELECT id FROM settings WHERE key = ?", [$key]);
-                    if
-                    $existing = $db->fetchOne("SELECT id FROM settings WHERE key = ?", [$key]);
                     if ($existing) {
                         $db->query("UPDATE settings SET value = ? WHERE key = ?", [$value, $key]);
                     } else {
