@@ -1,37 +1,55 @@
 <?php
-require_once 'config/config.php';
+session_start();
+require_once 'includes/config.php';
+require_once 'includes/auth.php';
+require_once 'includes/functions.php';
 
 // Redirect if already logged in
 if (isLoggedIn()) {
-    redirect('/dashboard.php');
+    header("Location: index.php");
+    exit();
 }
 
-$error = '';
+$loginError = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = sanitize($_POST['email'] ?? '');
+// Handle login form submission
+if ($_POST) {
+    $email = sanitizeInput($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
     
     if (empty($email) || empty($password)) {
-        $error = 'Please fill in all fields.';
+        $loginError = 'Please enter both email and password.';
+    } elseif (!isValidEmail($email)) {
+        $loginError = 'Please enter a valid email address.';
     } else {
-        $auth = new Auth();
-        if ($auth->login($email, $password)) {
-            redirect('/dashboard.php');
+        if (loginUser($email, $password)) {
+            // Log activity
+            logActivity($_SESSION['user_id'], 'login', 'User logged in successfully');
+            
+            // Redirect to dashboard
+            header("Location: index.php");
+            exit();
         } else {
-            $error = 'Invalid email or password.';
+            $loginError = 'Invalid email or password. Please try again.';
         }
     }
 }
+
+$pageTitle = 'Login';
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - <?php echo APP_NAME; ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <title><?php echo $pageTitle . ' - ' . APP_NAME; ?></title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
     <style>
         body {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -39,82 +57,200 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
         }
+        
         .login-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 15px;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
         }
-        .login-header {
+        
+        .school-logo {
+            width: 80px;
+            height: 80px;
+            background: #007bff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .btn-login {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 15px 15px 0 0;
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .form-control {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .input-group-text {
+            border-radius: 10px 0 0 10px;
+            border: 2px solid #e9ecef;
+            border-right: none;
+            background-color: #f8f9fa;
+        }
+        
+        .input-group .form-control {
+            border-radius: 0 10px 10px 0;
+            border-left: none;
+        }
+        
+        .input-group .form-control:focus {
+            border-left: none;
+        }
+        
+        .input-group:focus-within .input-group-text {
+            border-color: #667eea;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-4">
-                <div class="card login-card border-0">
-                    <div class="card-header login-header text-center py-4">
-                        <h3 class="mb-0">
-                            <i class="bi bi-mortarboard-fill me-2"></i>
-                            School Results
-                        </h3>
-                        <p class="mb-0 mt-2 opacity-75">Management System</p>
+            <div class="col-lg-5 col-md-7 col-sm-9">
+                <div class="login-card p-5">
+                    <!-- School Logo -->
+                    <div class="school-logo">
+                        <i class="bi bi-mortarboard-fill text-white" style="font-size: 2.5rem;"></i>
                     </div>
-                    <div class="card-body p-4">
-                        <?php if ($error): ?>
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                                <?php echo $error; ?>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
-                        <?php endif; ?>
-
-                        <form method="POST" action="">
-                            <div class="mb-3">
-                                <label for="email" class="form-label">
-                                    <i class="bi bi-envelope me-1"></i>Email Address
-                                </label>
+                    
+                    <!-- Title -->
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold text-dark mb-2"><?php echo APP_NAME; ?></h2>
+                        <p class="text-muted">Please sign in to your account</p>
+                    </div>
+                    
+                    <!-- Error Alert -->
+                    <?php if ($loginError): ?>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <?php echo htmlspecialchars($loginError); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <!-- Login Form -->
+                    <form method="POST" action="" class="needs-validation" novalidate>
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-semibold">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-envelope"></i>
+                                </span>
                                 <input type="email" class="form-control" id="email" name="email" 
-                                       value="<?php echo htmlspecialchars($email ?? ''); ?>" required>
+                                       value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>"
+                                       placeholder="Enter your email" required>
+                                <div class="invalid-feedback">
+                                    Please provide a valid email address.
+                                </div>
                             </div>
-                            
-                            <div class="mb-3">
-                                <label for="password" class="form-label">
-                                    <i class="bi bi-lock me-1"></i>Password
-                                </label>
-                                <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="password" class="form-label fw-semibold">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="bi bi-lock"></i>
+                                </span>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Enter your password" required>
+                                <div class="invalid-feedback">
+                                    Please provide your password.
+                                </div>
                             </div>
-                            
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                                <label class="form-check-label" for="remember">Remember me</label>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary w-100 py-2">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </div>
+                        
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-login text-white">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>
+                                Sign In
                             </button>
-                        </form>
+                        </div>
+                    </form>
+                    
+                    <!-- Additional Links -->
+                    <div class="text-center">
+                        <small class="text-muted">
+                            Forgot your password? Contact the administrator.
+                        </small>
                     </div>
                     
                     <!-- Demo Credentials -->
-                    <div class="card-footer bg-light">
-                        <small class="text-muted">
-                            <strong>Demo Credentials:</strong><br>
-                            <strong>Admin:</strong> admin@school.com / password<br>
-                            <strong>Principal:</strong> principal@school.com / password<br>
-                            <strong>Teacher:</strong> john@school.com / password<br>
-                            <strong>Class Teacher:</strong> mary@school.com / password
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="fw-bold mb-2">Demo Credentials:</h6>
+                        <small class="d-block text-muted mb-1">
+                            <strong>Admin:</strong> admin@school.com / password
+                        </small>
+                        <small class="d-block text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Default password for the admin account is "password"
                         </small>
                     </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="text-center mt-4">
+                    <small class="text-white-50">
+                        &copy; <?php echo date('Y'); ?> Government Secondary School. All rights reserved.
+                    </small>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Form validation
+        (function() {
+            'use strict';
+            window.addEventListener('load', function() {
+                var forms = document.getElementsByClassName('needs-validation');
+                var validation = Array.prototype.filter.call(forms, function(form) {
+                    form.addEventListener('submit', function(event) {
+                        if (form.checkValidity() === false) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            }, false);
+        })();
+        
+        // Auto focus on email field
+        document.getElementById('email').focus();
+        
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                if (alert) {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            });
+        }, 5000);
+    </script>
 </body>
 </html>
